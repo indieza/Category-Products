@@ -1,0 +1,55 @@
+@implements IAsyncDisposable
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <CascadingValue Value="@this">
+                <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@this.LayoutType">
+                    <Authorizing>
+                        Auth...
+                    </Authorizing>
+                    <NotAuthorized>
+                        @if (context.User.Identity?.IsAuthenticated != true)
+                        {
+                        }
+                        else
+                        {
+                        }
+                    </NotAuthorized>
+                </AuthorizeRouteView>
+            </CascadingValue>
+        </Found>
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p role="alert">Sorry, there's nothing at this address.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+
+@code {
+
+    private Type LayoutType = typeof(MainLayout);
+
+    public void SetLayout(Type layout)
+    {
+        if (layout != LayoutType)
+        {
+            this.LayoutType = layout;
+            this.StateHasChanged();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.UserState.SetupHubConnectionAsync();
+        await this.ShopState.SetupHubConnectionAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await this.UserState.DisposeHubConnection();
+        await this.ShopState.DisposeHubConnection();
+    }
+}

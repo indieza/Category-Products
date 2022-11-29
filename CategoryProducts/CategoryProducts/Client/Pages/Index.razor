@@ -1,0 +1,53 @@
+@page "/"
+@implements IDisposable
+
+<PageTitle>@this.Localizer["Home"]</PageTitle>
+
+<h1>Hello, Category-Products!</h1>
+
+
+<CultureSelector />
+
+@if (this.IsAuth != null && (bool)this.IsAuth)
+{
+    <div>
+        <BSButton Color="BSColor.Primary" Target="AddCategoryModal">Add category</BSButton>
+    </div>
+
+    <AddCategoryModal />
+}
+
+@foreach(var item in this.ShopState.Categories)
+{
+    <div>
+        Name: @item.Name
+    </div>
+    <div>
+        Products count: @item.Products.Count()
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    Task<AuthenticationState> AuthenticationState { get; set; }
+
+    public bool? IsAuth { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.IsAuth = (await this.AuthenticationState).User.Identity?.IsAuthenticated;
+        await this.ShopState.GetAllCategories();
+    }
+
+    protected override void OnInitialized()
+    {
+        this.AuthStateProvider.OnChange += this.StateHasChanged;
+        this.ShopState.OnChange += this.StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        this.AuthStateProvider.OnChange -= this.StateHasChanged;
+        this.ShopState.OnChange -= this.StateHasChanged;
+    }
+}

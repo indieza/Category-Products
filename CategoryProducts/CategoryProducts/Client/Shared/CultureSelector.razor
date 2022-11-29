@@ -1,0 +1,35 @@
+<div class="languageChanger">  
+    <BSInput InputType="InputType.Select" Value="@this.currentCulture" onchange="@this.OnCultureChanged" class="form-control">
+        <option value="" selected disabled>@this.Localizer["Select website language"]</option>
+        @foreach (var culture in cultures)
+        {
+            <option value="@culture">@this.Localizer[culture.Name]</option>
+        }
+    </BSInput>
+</div>
+
+@code {
+    private string currentCulture;
+
+    CultureInfo[] cultures = new[]
+    {
+        new CultureInfo("en-US"),
+        new CultureInfo("bg-BG")
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.currentCulture = CultureInfo.CurrentCulture.Name;
+        await base.OnInitializedAsync();
+    }
+
+    public async Task OnCultureChanged(ChangeEventArgs e)
+    {
+        var cultureName = e.Value.ToString();
+        var js = (IJSInProcessRuntime)this.JsRuntime;
+        js.InvokeVoid("CategoryProductsCulture.set", cultureName);
+        var response = await this.UserState.ChangeAppLanguage(cultureName);
+        this.NavManager.NavigateTo(this.NavManager.Uri, forceLoad: true);
+        await response.DisplayMessageAsync(this.JsRuntime);
+    }
+}

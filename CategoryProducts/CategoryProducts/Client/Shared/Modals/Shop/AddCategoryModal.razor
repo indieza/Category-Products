@@ -1,0 +1,48 @@
+﻿@implements IDisposable
+
+<BSModal DataId="AddCategoryModal">
+    <Header>@this.Localizer["Add category"]</Header>
+    <Content>
+        <BSForm Model="@this.ShopState.CategoryInputModel" OnValidSubmit="@(async() => await this.AddNewCategory())" data-aos="fade-up">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <BSLabel class="@(this.ShopState.CategoryInputModel.IsPropertyRequired(nameof(this.ShopState.CategoryInputModel.Name)) ? "required" : string.Empty)">@this.Localizer["Name"]</BSLabel>
+                        <BSInput @bind-Value="@this.ShopState.CategoryInputModel.Name" class="form-control" />
+                        <ValidationMessage For="@(() => this.ShopState.CategoryInputModel.Name)" class="form-text text-muted" />
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-md-4 col-lg-4">
+                    <div class="form-group">
+                        <BSButton Target="AddCategoryModal" Color="BSColor.Info" IsOutlined="true" type="submit" class="w-100">
+                            <i class='bx bx-edit'></i> @this.Localizer["Add"]
+                        </BSButton>
+                    </div>
+                </div>
+            </div>
+        </BSForm>
+    </Content>
+</BSModal>
+
+@code {
+    public async Task AddNewCategory()
+    {
+        await this.ShopState.AddCategory();
+    }
+
+    protected override void OnInitialized()
+    {
+        this.AuthStateProvider.OnChange += this.StateHasChanged;
+        this.ShopState.OnChange += this.StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        this.AuthStateProvider.OnChange -= this.StateHasChanged;
+        this.ShopState.OnChange -= this.StateHasChanged;
+    }
+}

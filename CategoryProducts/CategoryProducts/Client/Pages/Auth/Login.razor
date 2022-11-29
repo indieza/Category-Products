@@ -1,0 +1,88 @@
+@page "/Login"
+@layout MainLayout
+
+<PageTitle>@this.Localizer["Login"]</PageTitle>
+
+<section id="login" data-aos="flip-left">
+    <div class="container">
+        <div class="section-title">
+            <h2>@this.Localizer["Login"]</h2>
+        </div>
+        <div class="row mt-1">
+            <EditForm class="form-signin" OnValidSubmit="OnSubmit" Model="this.Model">
+                <DataAnnotationsValidator />
+                <div class="form-group">
+                    <BSLabel class="@(this.Model.IsPropertyRequired(nameof(this.Model.UserName)) ? "required" : string.Empty)">@this.Localizer["Username"]</BSLabel>
+                    <BSInput class="form-control" @bind-Value="this.Model.UserName" placeholder="@this.Localizer["Username"]" autofocus />
+                    <ValidationMessage For="@(() => this.Model.UserName)" />
+                </div>
+                <br />
+                <div class="form-group">
+                    <BSLabel class="@(this.Model.IsPropertyRequired(nameof(this.Model.Password)) ? "required" : string.Empty)">@this.Localizer["Password"]</BSLabel>
+                    <BSInput InputType="@(this.Model.ShowPassword ? InputType.Text : InputType.Password)" class="form-control" placeholder="@this.Localizer["Password"]" @bind-Value="this.Model.Password" />
+                    <ValidationMessage For="@(() => this.Model.Password)" />
+                </div>
+                <br />
+                <div class="form-check">
+                    <InputCheckbox class="form-check-input" @bind-Value="this.Model.ShowPassword" />
+                    <BSLabel class="form-check-label">@this.Localizer["Show password"]</BSLabel>
+                    <ValidationMessage For="@(() => this.Model.ShowPassword)" />
+                </div>
+                <div class="form-check">
+                    <InputCheckbox class="form-check-input" @bind-Value="this.Model.RememberMe" />
+                    <BSLabel class="form-check-label">@this.Localizer["Remember Me"]</BSLabel>
+                    <ValidationMessage For="@(() => this.Model.RememberMe)" />
+                </div>
+                <hr />
+                <div class="text-center">
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">@this.Localizer["Login"]</button>
+                </div>
+
+                <BSLabel class="text-danger">@this.Error</BSLabel>
+
+                <NavLink href="Register">
+                    <h6 class="font-weight-normal text-center">@this.Localizer["Create account"]</h6>
+                </NavLink>
+            </EditForm>
+        </div>
+    </div>
+</section>
+
+@code {
+    [CascadingParameter]
+    Task<AuthenticationState> AuthenticationState { get; set; }
+
+    public LoginInputModel Model { get; set; } = new LoginInputModel();
+
+    public string Error { get; set; }
+
+    public async Task OnSubmit()
+    {
+        Error = null;
+        try
+        {
+            var result = await this.AuthStateProvider.LoginAsync(this.Model);
+            await result.DisplayMessageAsync(this.JsRuntime);
+
+            if (result.Key == "Success")
+            {
+                var username = (await this.AuthenticationState).User.Identity?.Name;
+                this.NavManager.NavigateTo($"/Profile/{username}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var identity = (await this.AuthenticationState).User.Identity;
+        if (identity.IsAuthenticated)
+        {
+            var username = identity.Name;
+            this.NavManager.NavigateTo($"/Profile/{username}");
+        }
+    }
+}

@@ -1,0 +1,90 @@
+@page "/Register"
+@layout MainLayout
+
+<PageTitle>@this.Localizer["Register"]</PageTitle>
+
+<section id="register" data-aos="flip-right">
+    <div class="container">
+        <div class="section-title">
+            <h2>@this.Localizer["Register"]</h2>
+        </div>
+        <div class="row mt-1">
+            <EditForm class="form-signin" OnValidSubmit="OnSubmit" Model="this.Model">
+                <DataAnnotationsValidator />
+                <div class="form-group">
+                    <BSLabel class="@(this.Model.IsPropertyRequired(nameof(this.Model.UserName)) ? "required" : string.Empty)">@this.Localizer["Username"]</BSLabel>
+                    <BSInput class="form-control" placeholder="@this.Localizer["Username"]" @bind-Value="this.Model.UserName" autofocus />
+                    <ValidationMessage For="@(() => this.Model.UserName)" />
+                </div>
+                <br />
+                <div class="form-group">
+                    <BSLabel class="@(this.Model.IsPropertyRequired(nameof(this.Model.Password)) ? "required" : string.Empty)">@this.Localizer["Password"]</BSLabel>
+                    <BSInput InputType="@(this.Model.ShowPassword ? InputType.Text : InputType.Password)" class="form-control" placeholder="@this.Localizer["Password"]" @bind-Value="this.Model.Password" />
+                    <ValidationMessage For="@(() => this.Model.Password)" />
+                </div>
+                <br />
+                <div class="form-group">
+                    <BSLabel class="@(this.Model.IsPropertyRequired(nameof(this.Model.PasswordConfirm)) ? "required" : string.Empty)">@this.Localizer["Password Confirmation"]</BSLabel>
+                    <BSInput InputType="@(this.Model.ShowPassword ? InputType.Text : InputType.Password)" class="form-control" placeholder="@this.Localizer["Password Confirmation"]" @bind-Value="this.Model.PasswordConfirm" />
+                    <ValidationMessage For="@(() => this.Model.PasswordConfirm)" />
+                </div>
+                <br />
+                <div class="form-check">
+                    <InputCheckbox class="form-check-input" @bind-Value="this.Model.ShowPassword" />
+                    <BSLabel class="form-check-label">@this.Localizer["Show password"]</BSLabel>
+                    <ValidationMessage For="@(() => this.Model.ShowPassword)" />
+                </div>
+                <div class="form-check">
+                    <InputCheckbox class="form-check-input" @bind-Value="this.Model.RememberMe" />
+                    <BSLabel class="form-check-label">@this.Localizer["Remember Me"]</BSLabel>
+                    <ValidationMessage For="@(() => this.Model.RememberMe)" />
+                </div>
+                <hr />
+                <div class="text-center">
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">@this.Localizer["Register"]</button>
+                </div>
+                <BSLabel class="text-danger">@this.Error</BSLabel>
+                <NavLink href="Login">
+                    <h6 class="font-weight-normal text-center">@this.Localizer["Already have an account? Click here to login"]</h6>
+                </NavLink>
+            </EditForm>
+        </div>
+    </div>
+</section>
+
+@functions{
+    [CascadingParameter]
+    Task<AuthenticationState> AuthenticationState { get; set; }
+
+    public RegisterInputModel Model { get; set; } = new RegisterInputModel();
+
+    public string Error { get; set; } = string.Empty;
+
+    public async Task OnSubmit()
+    {
+        try
+        {
+            var result = await this.AuthStateProvider.RegisterAsync(this.Model);
+            await result.DisplayMessageAsync(this.JsRuntime);
+            if (result.Key == "Success")
+            {
+                var username = (await this.AuthenticationState).User.Identity?.Name;
+                this.NavManager.NavigateTo($"/Profile/{username}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var identity = (await this.AuthenticationState).User.Identity;
+        if (identity.IsAuthenticated)
+        {
+            var username = identity.Name;
+            this.NavManager.NavigateTo($"/Profile/{username}");
+        }
+    }
+}

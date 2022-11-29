@@ -1,0 +1,62 @@
+@page "/Profile/{username}"
+@implements IDisposable
+
+<div class="row">
+    <div class="col-sm-6">
+        <div class="form-group">
+            <BSLabel>@this.Localizer["First name"]</BSLabel>
+            <BSInput IsDisabled Value="@this.UserState.UserProfile.FirstName" class="form-control" />
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="form-group">
+            <BSLabel>@this.Localizer["Last name"]</BSLabel>
+            <BSInput IsDisabled Value="@this.UserState.UserProfile.LastName" class="form-control" />
+        </div>
+    </div>
+</div>
+
+@if (this.AuthStateProvider.CurrentUser.UserName == this.Username)
+{
+    <br />
+    <div class="row">
+        <div class="col-md-4 col-lg-2">
+            <div class="form-group">
+                <BSButton Color= "BSColor.Info" IsOutlined="true" Target="EditUserModal" OnClick="@(() => this.SetupInputModel())" class="w-100">
+                    <i class='bx bx-edit'></i> @this.Localizer["Edit"]
+                </BSButton>
+            </div>
+        </div>
+    </div>
+
+    <EditUserModal />
+}
+
+
+
+@code {
+    [Parameter]
+    public string Username { get; set; }
+
+    public void SetupInputModel()
+    {
+        this.UserState.SetupEditUserInputModel();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await this.UserState.GetUserProfileAsync(this.Username, this.AuthStateProvider.CurrentUser.UserName);
+    }
+
+    protected override void OnInitialized()
+    {
+        this.AuthStateProvider.OnChange += this.StateHasChanged;
+        this.UserState.OnChange += this.StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        this.AuthStateProvider.OnChange -= this.StateHasChanged;
+        this.UserState.OnChange -= this.StateHasChanged;
+    }
+}

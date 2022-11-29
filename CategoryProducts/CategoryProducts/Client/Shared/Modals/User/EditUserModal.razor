@@ -1,0 +1,59 @@
+@implements IDisposable
+
+<BSModal DataId="EditUserModal">
+    <Header>@this.Localizer["Edit profile"]</Header>
+    <Content>
+        <BSForm Model="@this.UserState.EditUserInputModel" OnValidSubmit="@(async() => await this.EditUserAbout())" data-aos="fade-up">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <BSLabel class="@(this.UserState.EditUserInputModel.IsPropertyRequired(nameof(this.UserState.EditUserInputModel.FirstName)) ? "required" : string.Empty)">@this.Localizer["First name"]</BSLabel>
+                        <BSInput IsDisabled="@(this.AuthStateProvider.CurrentUser.UserName != this.UserState.UserProfile.UserName)" @bind-Value="@this.UserState.EditUserInputModel.FirstName" class="form-control" />
+                        <ValidationMessage For="@(() => this.UserState.EditUserInputModel.FirstName)" class="form-text text-muted" />
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <BSLabel class="@(this.UserState.EditUserInputModel.IsPropertyRequired(nameof(this.UserState.EditUserInputModel.LastName)) ? "required" : string.Empty)">@this.Localizer["Last name"]</BSLabel>
+                        <BSInput IsDisabled="@(this.AuthStateProvider.CurrentUser.UserName != this.UserState.UserProfile.UserName)" @bind-Value="@this.UserState.EditUserInputModel.LastName" class="form-control" />
+                        <ValidationMessage For="@(() => this.UserState.EditUserInputModel.LastName)" class="form-text text-muted" />
+                    </div>
+                </div>
+            </div>
+            @if (this.AuthStateProvider.CurrentUser.UserName == this.UserState.UserProfile.UserName)
+            {
+                <br />
+                <div class="row">
+                    <div class="col-md-4 col-lg-4">
+                        <div class="form-group">
+                            <BSButton Target="EditUserModal" Color="BSColor.Info" IsOutlined="true" type="submit" class="w-100">
+                                <i class='bx bx-edit'></i> @this.Localizer["Edit"]
+                            </BSButton>
+                        </div>
+                    </div>
+                </div>
+            }
+        </BSForm>
+    </Content>
+</BSModal>
+
+@code {
+    public async Task EditUserAbout()
+    {
+        var result = await this.UserState.EditUserProfileAsync();
+        await result.DisplayMessageAsync(this.JsRuntime);
+    }
+
+    protected override void OnInitialized()
+    {
+        this.AuthStateProvider.OnChange += this.StateHasChanged;
+        this.UserState.OnChange += this.StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        this.AuthStateProvider.OnChange -= this.StateHasChanged;
+        this.UserState.OnChange -= this.StateHasChanged;
+    }
+}

@@ -1,0 +1,26 @@
+<AuthorizeView>
+    <Authorized>
+        <NavLink class="nav-link" href="@($"/Profile/{context.User.Identity?.Name}")" Match="NavLinkMatch.All">
+            <i class='bx bxs-user'></i> <span>@this.Localizer["Profile"]</span>
+        </NavLink>
+        <NavLink class="nav-link" @onclick="@this.LogoutClick" Match="NavLinkMatch.All">
+            <i class="bx bx-log-out"></i> <span>@this.Localizer["Logout"]</span>
+        </NavLink>
+    </Authorized>
+    <NotAuthorized>
+        <NavLink class="nav-link" href="Register" Match="NavLinkMatch.All">
+            <i class="bx bx-registered"></i> <span>@this.Localizer["Register"]</span>
+        </NavLink>
+        <NavLink class="nav-link" href="Login" Match="NavLinkMatch.All">
+            <i class="bx bx-log-in"></i> <span>@this.Localizer["Login"]</span>
+        </NavLink>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code{
+    public async Task LogoutClick()
+    {
+        await this.AuthStateProvider.LogoutAsync();
+        this.NavManager.NavigateTo("/Login");
+    }
+}
